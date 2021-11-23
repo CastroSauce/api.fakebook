@@ -30,6 +30,7 @@ namespace api.fakebook
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
+                 
                     webBuilder.UseStartup<Startup>();
                 });
     }
