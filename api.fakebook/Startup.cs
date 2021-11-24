@@ -1,5 +1,6 @@
 using api.fakebook.Models;
 using api.fakebook.Models.Authentication;
+using api.fakebook.Services.AuthService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -34,6 +35,8 @@ namespace api.fakebook
         public void ConfigureServices(IServiceCollection services)
         {
 
+            services.AddScoped<IAuthService, AuthService>();
+
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
@@ -52,6 +55,7 @@ namespace api.fakebook
                 options.TokenValidationParameters = new TokenValidationParameters()
                 {
                     ValidateIssuer = true,
+                    ValidateAudience = false,
                     ValidIssuer = Configuration["JWT:ValidIssuer"],
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JWT:Secret"]))
                 };
@@ -83,6 +87,8 @@ namespace api.fakebook
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseAuthentication();
 
             app.UseAuthorization();
 

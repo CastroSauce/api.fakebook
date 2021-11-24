@@ -10,7 +10,7 @@ namespace api.fakebook.Models.Authentication
         public string status { get; set; }
         public string message { get; set; }
 
-        public string[] additional { get; set; } = null;
+        public string[] additional { get; set; } = {};
 
     }
 
@@ -27,6 +27,6 @@ namespace api.fakebook.Models.Authentication
     {
         public const string ACCOUNT_CREATION_OK = "Account has been created";
         public const string ACCOUNT_CREATION_ERROR = "Unable to create account";
-
+        public const string ACCOUNT_LOGIN_ERROR = "Username or password is wrong";
     }
 }

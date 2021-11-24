@@ -10,6 +10,11 @@ namespace api.fakebook.extensions
     public static class ResponseExtensions
     {
 
+        public static Response Error(this Response responseObj)
+        {
+            responseObj.status = ResponseCodes.ERROR;
+            return responseObj;
+        }
         public static Response Ok(this Response responseObj)
         {
             responseObj.status = ResponseCodes.OK;
