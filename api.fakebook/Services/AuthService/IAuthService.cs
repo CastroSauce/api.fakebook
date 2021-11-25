@@ -10,10 +10,7 @@ namespace api.fakebook.Services.AuthService
 {
     public interface IAuthService
     {
-        public Task<ApplicationUser> FindUserByNameAsync(string name);
-        public Task<bool> CheckUserPasswordAsync(ApplicationUser user, string password);
-        public Task<IdentityResult> CreateUserAsync(ApplicationUser user, string password);
-        public Task<JwtSecurityToken> GenerateJwtToken(ApplicationUser user);
+        public JwtSecurityToken GenerateJwtToken(ApplicationUser user, IList<string> roles);
 
     }
 }

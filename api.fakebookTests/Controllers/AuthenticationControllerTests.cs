@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 using FluentAssertions;
 using System.Threading;
 using api.fakebook.Services.AuthService;
+using api.fakebook.Services.UserService;
 
 namespace api.fakebook.Controllers.Tests
 {
@@ -24,10 +25,10 @@ namespace api.fakebook.Controllers.Tests
         public async Task Register_UserAlreadyExist_ReturnBad(string username, string password)
         {
             //arrange
-            var MockAuthService = new Mock<IAuthService>();
-            MockAuthService.Setup(service => service.FindUserByNameAsync(It.IsAny<string>())).ReturnsAsync(new ApplicationUser());
+            (var MockAuthService, var MockUserService) = GetMockedClasses();
+            MockUserService.Setup(service => service.FindUserByNameAsync(It.IsAny<string>())).ReturnsAsync(new ApplicationUser());
             //act
-            var controller = new AuthenticationController(MockAuthService.Object);
+            var controller = new AuthenticationController(MockAuthService.Object, MockUserService.Object);
             var result = await controller.Register(new RegisterModel{Username = username, Password = password });
             //assert
             result.Should().BeOfType(typeof(BadRequestObjectResult));
@@ -38,11 +39,11 @@ namespace api.fakebook.Controllers.Tests
         public async Task Register_NoUserExists_ReturnOk(string username, string password)
         {
             //arrange
-            var MockAuthService = new Mock<IAuthService>();
-            MockAuthService.Setup(service => service.FindUserByNameAsync(It.IsAny<string>())).ReturnsAsync((ApplicationUser)null);
-            MockAuthService.Setup(service => service.CreateUserAsync(It.IsAny<ApplicationUser>() ,It.IsAny<string>())).ReturnsAsync(IdentityResult.Success);
+            (var MockAuthService, var MockUserService) = GetMockedClasses();
+            MockUserService.Setup(service => service.FindUserByNameAsync(It.IsAny<string>())).ReturnsAsync((ApplicationUser)null);
+            MockUserService.Setup(service => service.CreateUserAsync(It.IsAny<ApplicationUser>() ,It.IsAny<string>())).ReturnsAsync(IdentityResult.Success);
             //act
-            var controller = new AuthenticationController(MockAuthService.Object);
+            var controller = GetController(MockAuthService, MockUserService);
             var result = await controller.Register(new RegisterModel { Username = username, Password = password });
             //assert
             result.Should().BeOfType(typeof(OkObjectResult));
@@ -54,10 +55,10 @@ namespace api.fakebook.Controllers.Tests
         public async Task Login_WrongUsername_ReturnUnauthorized(string username)
         {
             //Arrange
-            var MockAuthService = new Mock<IAuthService>();
-            MockAuthService.Setup(service => service.FindUserByNameAsync(It.IsAny<string>())).ReturnsAsync(new ApplicationUser());
+            (var MockAuthService, var MockUserService) = GetMockedClasses();
+            MockUserService.Setup(service => service.FindUserByNameAsync(It.IsAny<string>())).ReturnsAsync(new ApplicationUser());
             //Act
-            var controller = new AuthenticationController(MockAuthService.Object);
+            var controller = GetController(MockAuthService, MockUserService);
             var result = await controller.Login(new LoginModel { Username = username, Password = "" });
             //Assert
             result.Should().BeOfType(typeof(UnauthorizedResult));
@@ -68,11 +69,11 @@ namespace api.fakebook.Controllers.Tests
         public async Task Login_WrongPassword_ReturnUnauthorized(string username, string password)
         {
             //Arrange
-            var MockAuthService = new Mock<IAuthService>();
-            MockAuthService.Setup(service => service.FindUserByNameAsync(It.IsAny<string>())).ReturnsAsync(new ApplicationUser());
-            MockAuthService.Setup(service => service.CheckUserPasswordAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>())).ReturnsAsync(false);
+            (var MockAuthService, var MockUserService) = GetMockedClasses();
+            MockUserService.Setup(service => service.FindUserByNameAsync(It.IsAny<string>())).ReturnsAsync(new ApplicationUser());
+            MockUserService.Setup(service => service.CheckUserPasswordAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>())).ReturnsAsync(false);
             //Act
-            var controller = new AuthenticationController(MockAuthService.Object);
+            var controller = GetController(MockAuthService, MockUserService);
             var result = await controller.Login(new LoginModel { Username = username, Password = "" });
             //Assert
             result.Should().BeOfType(typeof(UnauthorizedResult));
@@ -83,16 +84,27 @@ namespace api.fakebook.Controllers.Tests
         public async Task Login_correctCredentials_ReturnOk(string username, string password)
         {
             //Arrange
-            var MockAuthService = new Mock<IAuthService>();
-            MockAuthService.Setup(service => service.FindUserByNameAsync(It.IsAny<string>())).ReturnsAsync(new ApplicationUser());
-            MockAuthService.Setup(service => service.CheckUserPasswordAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>())).ReturnsAsync(true);
-            MockAuthService.Setup(service => service.GenerateJwtToken(It.IsAny<ApplicationUser>())).ReturnsAsync(new System.IdentityModel.Tokens.Jwt.JwtSecurityToken());
+            (var MockAuthService, var MockUserService) = GetMockedClasses();
+            MockUserService.Setup(service => service.FindUserByNameAsync(It.IsAny<string>())).ReturnsAsync(new ApplicationUser());
+            MockUserService.Setup(service => service.CheckUserPasswordAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>())).ReturnsAsync(true);
+            MockAuthService.Setup(service => service.GenerateJwtToken(It.IsAny<ApplicationUser>(), It.IsAny<IList<string>>())).Returns(new System.IdentityModel.Tokens.Jwt.JwtSecurityToken());
             //Act
-            var controller = new AuthenticationController(MockAuthService.Object);
+            var controller = GetController(MockAuthService, MockUserService);
             var result = await controller.Login(new LoginModel { Username = username, Password = password });
             //Assert
             result.Should().BeOfType(typeof(OkObjectResult));
         }
 
+
+
+        private (Mock<IAuthService>, Mock<IUserService>) GetMockedClasses()
+        {
+            return (new Mock<IAuthService>(), new Mock<IUserService>());
+        }
+
+        private AuthenticationController GetController(Mock<IAuthService> authService, Mock<IUserService> userService)
+        {
+            return new AuthenticationController(authService.Object, userService.Object);
+        }
     }
 }

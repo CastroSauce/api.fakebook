@@ -14,37 +14,17 @@ namespace api.fakebook.Services.AuthService
 {
     public class AuthService : IAuthService
     {
-        private UserManager<ApplicationUser> _userManager { get; init; }
-        private RoleManager<IdentityRole> _roleManager { get; init; }
+
         private IConfiguration _configuration { get; init; }
 
-        public AuthService(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, IConfiguration configuration)
+        public AuthService(IConfiguration configuration)
         {
-            _userManager = userManager;
-            _roleManager = roleManager;
             _configuration = configuration;
         }
 
-        public async Task<ApplicationUser> FindUserByNameAsync(string name)
+
+        public JwtSecurityToken GenerateJwtToken(ApplicationUser user, IList<string> roles)
         {
-            return await _userManager.FindByNameAsync(name);
-        }
-
-        public async Task<bool> CheckUserPasswordAsync(ApplicationUser user, string password)
-        {
-            return await _userManager.CheckPasswordAsync(user, password);
-        }
-
-        public async Task<IdentityResult> CreateUserAsync(ApplicationUser user, string password)
-        {
-            return await _userManager.CreateAsync(user, password);
-        }
-
-
-        public async Task<JwtSecurityToken> GenerateJwtToken(ApplicationUser user)
-        {
-            var roles = await _userManager.GetRolesAsync(user);
-
             var authClaims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.UserName),

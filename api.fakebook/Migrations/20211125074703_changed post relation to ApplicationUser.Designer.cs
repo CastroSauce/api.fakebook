@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using api.fakebook.Models;
 
 namespace api.fakebook.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20211125074703_changed post relation to ApplicationUser")]
+    partial class changedpostrelationtoApplicationUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -215,32 +217,6 @@ namespace api.fakebook.Migrations
                     b.ToTable("AspNetUsers");
                 });
 
-            modelBuilder.Entity("api.fakebook.Models.Post", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<DateTime>("postDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("postedById")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<Guid>("publicId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("text")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("postedById");
-
-                    b.ToTable("Posts");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -290,15 +266,6 @@ namespace api.fakebook.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("api.fakebook.Models.Post", b =>
-                {
-                    b.HasOne("api.fakebook.Models.Authentication.ApplicationUser", "postedBy")
-                        .WithMany()
-                        .HasForeignKey("postedById");
-
-                    b.Navigation("postedBy");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,6 +1,7 @@
 ﻿using api.fakebook.extensions;
 using api.fakebook.Models.Authentication;
 using api.fakebook.Services.AuthService;
+using api.fakebook.Services.UserService;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -23,10 +24,12 @@ namespace api.fakebook.Controllers
     public class AuthenticationController : ControllerBase
     {
         private  IAuthService _authService { get; init; }
+        private  IUserService _userService { get; init; }
 
-        public AuthenticationController(IAuthService authService)
+        public AuthenticationController(IAuthService authService, IUserService userService)
         {
             _authService = authService;
+            _userService = userService;
         }
 
 
@@ -37,7 +40,7 @@ namespace api.fakebook.Controllers
 
             if (!ModelState.IsValid) { return BadRequest(BadAccountCreation()); }
 
-            if (await _authService.FindUserByNameAsync(register.Username) != null)
+            if (await _userService.FindUserByNameAsync(register.Username) != null)
                 return BadRequest(BadAccountCreation());
 
             ApplicationUser user = new()
@@ -47,7 +50,7 @@ namespace api.fakebook.Controllers
                 SecurityStamp = Guid.NewGuid().ToString()           
             };
 
-            var result = await _authService.CreateUserAsync(user, register.Password);
+            var result = await _userService.CreateUserAsync(user, register.Password);
 
             if (!result.Succeeded)
             {
@@ -61,13 +64,15 @@ namespace api.fakebook.Controllers
         [Route("login")]
         public async Task<IActionResult> Login([FromBody] LoginModel login)
         {
-            var user = await _authService.FindUserByNameAsync(login.Username);
+            var user = await _userService.FindUserByNameAsync(login.Username);
 
             if (user == null) return Unauthorized();
 
-            if (!await _authService.CheckUserPasswordAsync(user, login.Password)) return Unauthorized();
+            if (!await _userService.CheckUserPasswordAsync(user, login.Password)) return Unauthorized();
 
-            var token = await _authService.GenerateJwtToken(user);
+            var roles = await _userService.GetUserRoles(user);
+
+            var token = _authService.GenerateJwtToken(user, roles);
 
             var response = new Response()
                 .Ok()
