@@ -21,7 +21,7 @@ namespace api.fakebook.extensions
             return responseObj;
         }
 
-        public static Response Status(this Response responseObj, string Status)
+        public static Response Status(this Response responseObj, ResponseCodes Status)
         {
             responseObj.status = Status;
             return responseObj;
@@ -33,16 +33,16 @@ namespace api.fakebook.extensions
             return responseObj;
         }
 
-        public static Response Additional(this Response responseObj, string[] Additional)
+        public static Response Additional(this Response responseObj, object Additional)
         {
-            responseObj.additional = Additional;
+            responseObj.additional.Add(Additional);
             return responseObj;
         }
 
         public static Response IdentityErrors(this Response responseObj, IEnumerable<IdentityError> errors)
         {
-            var errorList = errors.Select(error => error.Description).ToArray();
-            responseObj.Additional(errorList);
+            var errorList = errors.Select(error => error.Description).ToList();
+            responseObj.Additional(new {IdentityErrors = errorList, });
             return responseObj;
         }
 

@@ -38,7 +38,7 @@ namespace api.fakebook.Controllers
             if (!ModelState.IsValid) { return BadRequest(BadAccountCreation()); }
 
             if (await _authService.FindUserByNameAsync(register.Username) != null)
-                return BadRequest(BadAccountCreation()); ;
+                return BadRequest(BadAccountCreation());
 
             ApplicationUser user = new()
             {
@@ -69,7 +69,12 @@ namespace api.fakebook.Controllers
 
             var token = await _authService.GenerateJwtToken(user);
 
-            return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token), expiration = token.ValidTo});
+            var response = new Response()
+                .Ok()
+                .Message(ResponseMessages.ACCOUNT_LOGIN_OK)
+                .Additional(new { token = new JwtSecurityTokenHandler().WriteToken(token), expiration = token.ValidTo });
+
+            return Ok(response);
         }
 
 

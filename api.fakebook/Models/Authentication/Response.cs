@@ -7,19 +7,17 @@ namespace api.fakebook.Models.Authentication
 {
     public class Response
     {
-        public string status { get; set; }
+        public ResponseCodes status { get; set; }
         public string message { get; set; }
 
-        public string[] additional { get; set; } = {};
+        public List<object> additional { get; set; } = new();
 
     }
 
-    public static class ResponseCodes
+    public enum ResponseCodes
     {
-        public const string OK = "SUCCESS";
-
-        public const string ERROR = "ERROR";
-
+        OK = 200,
+        ERROR = 400,
     }
 
 
@@ -28,5 +26,6 @@ namespace api.fakebook.Models.Authentication
         public const string ACCOUNT_CREATION_OK = "Account has been created";
         public const string ACCOUNT_CREATION_ERROR = "Unable to create account";
         public const string ACCOUNT_LOGIN_ERROR = "Username or password is wrong";
+        public const string ACCOUNT_LOGIN_OK = "Login successfull";
     }
 }
