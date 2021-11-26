@@ -1,4 +1,6 @@
 ﻿using api.fakebook.Dto;
+using api.fakebook.Dto.Post;
+using api.fakebook.extensions;
 using api.fakebook.Models;
 using api.fakebook.Services.PostService;
 using api.fakebook.Services.UserService;
@@ -8,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace api.fakebook.Controllers
@@ -19,34 +22,39 @@ namespace api.fakebook.Controllers
     public class PostController : ControllerBase
     {
         private  IPostService _postService {get; init;}
-        public PostController(IPostService userService)
+        public PostController(IPostService postService)
         {
-            _postService = userService;
+            _postService = postService;
         }
 
-        [HttpGet("userId")]
-        public async Task<IActionResult> GetPosts(String userId)
+        [HttpGet("PostsByUserId")]
+        public async Task<IActionResult> GetPosts(string userId, int offset = 0)
         {
-            var posts = await _postService.GetPostsByUserId(userId);
+            var posts = await _postService.GetPostsByUserIdAsync(userId);
 
             if (posts.Count == 0) return NoContent();
 
-            return  Ok();
+            return  Ok(posts);
+        }
+
+        [HttpGet("PostById")]
+        public async Task<IActionResult> GetPostById(string postId)
+        {
+            var post = await _postService.GetPostById(postId);
+
+            if (post == null) return NoContent();
+
+            return Ok(post);
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreatePost([FromBody]PostDto post)
+        public async Task<IActionResult> CreatePost([FromBody]createPostDto post)
         {
-            if(!ModelState.IsValid) return BadRequest();
+            var basicPost = post.toPostBase();
 
-            return Ok();
+             await _postService.CreatePostAsync(basicPost, User);
 
+            return CreatedAtAction(nameof(GetPostById), new { postId = basicPost.Id }, basicPost);
         }
-
-
-
-
-
-
     }
 }

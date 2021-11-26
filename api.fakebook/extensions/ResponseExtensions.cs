@@ -2,7 +2,9 @@
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace api.fakebook.extensions
@@ -10,18 +12,18 @@ namespace api.fakebook.extensions
     public static class ResponseExtensions
     {
 
-        public static Response Error(this Response responseObj)
+        public static Response BadRequest(this Response responseObj)
         {
-            responseObj.status = ResponseCodes.ERROR;
+            responseObj.status = HttpStatusCode.BadRequest;
             return responseObj;
         }
         public static Response Ok(this Response responseObj)
         {
-            responseObj.status = ResponseCodes.OK;
+            responseObj.status = HttpStatusCode.OK;
             return responseObj;
         }
 
-        public static Response Status(this Response responseObj, ResponseCodes Status)
+        public static Response Status(this Response responseObj, HttpStatusCode Status)
         {
             responseObj.status = Status;
             return responseObj;
@@ -39,10 +41,17 @@ namespace api.fakebook.extensions
             return responseObj;
         }
 
-        public static Response IdentityErrors(this Response responseObj, IEnumerable<IdentityError> errors)
+        public static RegisterResponse IdentityErrors(this RegisterResponse responseObj, IEnumerable<IdentityError> errors)
         {
             var errorList = errors.Select(error => error.Description).ToList();
-            responseObj.Additional(new {IdentityErrors = errorList, });
+            responseObj.errors = errorList;
+            return responseObj;
+        }
+
+        public static LoginResponse Token(this LoginResponse responseObj, JwtSecurityToken token)
+        {
+            responseObj.token = new JwtSecurityTokenHandler().WriteToken(token);
+            responseObj.expire = token.ValidTo;
             return responseObj;
         }
 

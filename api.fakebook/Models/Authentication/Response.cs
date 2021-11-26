@@ -1,25 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace api.fakebook.Models.Authentication
 {
     public class Response
     {
-        public ResponseCodes status { get; set; }
+        public HttpStatusCode status { get; set; }
         public string message { get; set; }
 
         public List<object> additional { get; set; } = new();
-
     }
 
-    public enum ResponseCodes
+
+    public class LoginResponse : Response
     {
-        OK = 200,
-        ERROR = 400,
+        public string token { get; set; }
+
+        public DateTime expire { get; set; }
     }
 
+    public class RegisterResponse : Response
+    {
+       public List<string> errors = new();
+    }
 
     public static class ResponseMessages
     {

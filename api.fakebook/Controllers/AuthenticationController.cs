@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Net;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
@@ -43,21 +44,23 @@ namespace api.fakebook.Controllers
             if (await _userService.FindUserByNameAsync(register.Username) != null)
                 return BadRequest(BadAccountCreation());
 
-            ApplicationUser user = new()
-            {
-                UserName = register.Username,
-                Email = register.Email,
-                SecurityStamp = Guid.NewGuid().ToString()           
-            };
-
-            var result = await _userService.CreateUserAsync(user, register.Password);
+            var result = await _userService.CreateUserAsync(register);
 
             if (!result.Succeeded)
             {
-                return BadRequest(BadAccountCreation().IdentityErrors(result.Errors));
+                var errorResponse = new RegisterResponse()
+                .IdentityErrors(result.Errors)
+                .BadRequest()
+                .Message(ResponseMessages.ACCOUNT_LOGIN_OK);
+
+                return BadRequest(errorResponse);
             }
-               
-            return Ok(new Response().Ok().Message(ResponseMessages.ACCOUNT_CREATION_OK));
+
+            var response = new RegisterResponse()
+                .Ok()
+                .Message(ResponseMessages.ACCOUNT_LOGIN_OK);
+
+            return Ok(response);
         }
 
         [HttpPost]
@@ -74,10 +77,10 @@ namespace api.fakebook.Controllers
 
             var token = _authService.GenerateJwtToken(user, roles);
 
-            var response = new Response()
+            var response = new LoginResponse()
+                .Token(token)
                 .Ok()
-                .Message(ResponseMessages.ACCOUNT_LOGIN_OK)
-                .Additional(new { token = new JwtSecurityTokenHandler().WriteToken(token), expiration = token.ValidTo });
+                .Message(ResponseMessages.ACCOUNT_LOGIN_OK);
 
             return Ok(response);
         }
@@ -85,7 +88,7 @@ namespace api.fakebook.Controllers
 
         private Response BadAccountCreation()
         {
-            return new Response().Status(ResponseCodes.ERROR).Message(ResponseMessages.ACCOUNT_CREATION_ERROR);
+            return new Response().Status(HttpStatusCode.BadRequest).Message(ResponseMessages.ACCOUNT_CREATION_ERROR);
         }
 
 

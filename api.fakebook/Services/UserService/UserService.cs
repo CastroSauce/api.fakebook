@@ -27,9 +27,17 @@ namespace api.fakebook.Services.UserService
 
         }
 
-        public async Task<IdentityResult> CreateUserAsync(ApplicationUser user, string password)
+        public async Task<IdentityResult> CreateUserAsync(RegisterModel register)
         {
-            return await _userManager.CreateAsync(user, password);
+
+            ApplicationUser user = new()
+            {
+                UserName = register.Username,
+                Email = register.Email,
+                SecurityStamp = Guid.NewGuid().ToString()
+            };
+
+            return await _userManager.CreateAsync(user, register.Password);
         }
 
         public async Task<IList<string>> GetUserRoles(ApplicationUser user)

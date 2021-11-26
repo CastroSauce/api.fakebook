@@ -41,7 +41,7 @@ namespace api.fakebook.Controllers.Tests
             //arrange
             (var MockAuthService, var MockUserService) = GetMockedClasses();
             MockUserService.Setup(service => service.FindUserByNameAsync(It.IsAny<string>())).ReturnsAsync((ApplicationUser)null);
-            MockUserService.Setup(service => service.CreateUserAsync(It.IsAny<ApplicationUser>() ,It.IsAny<string>())).ReturnsAsync(IdentityResult.Success);
+            MockUserService.Setup(service => service.CreateUserAsync(It.IsAny<RegisterModel>())).ReturnsAsync(IdentityResult.Success);
             //act
             var controller = GetController(MockAuthService, MockUserService);
             var result = await controller.Register(new RegisterModel { Username = username, Password = password });

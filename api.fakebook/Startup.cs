@@ -1,6 +1,8 @@
+using api.fakebook.Middleware;
 using api.fakebook.Models;
 using api.fakebook.Models.Authentication;
 using api.fakebook.Services.AuthService;
+using api.fakebook.Services.PostService;
 using api.fakebook.Services.UserService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -38,6 +40,7 @@ namespace api.fakebook
 
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IPostService, PostService>();
 
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -67,7 +70,8 @@ namespace api.fakebook
 
             services.AddDbContext<ApplicationDbContext>(
                   option => option.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"))
-              );
+                  .LogTo(Console.WriteLine, LogLevel.Information)
+              ) ;
 
             services.AddControllers();
             services.AddSwaggerGen(c =>
@@ -85,6 +89,8 @@ namespace api.fakebook
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "api.fakebook v1"));
             }
+
+            app.UseMiddleware<SanatizerMiddleware>();
 
             app.UseHttpsRedirection();
 

@@ -10,6 +10,8 @@ using Moq;
 using FluentAssertions;
 using api.fakebook.Services.PostService;
 using api.fakebook.Dto;
+using Microsoft.AspNetCore.Mvc;
+using api.fakebook.Dto.Post;
 
 namespace api.fakebook.Controllers.Tests
 {
@@ -22,25 +24,64 @@ namespace api.fakebook.Controllers.Tests
             //Arrange
             var mockPostService = new Mock<IPostService>();
 
-            var mockedReturnValue = new List<PostDto>() { createPost(), createPost(), createPost(), };
+            var mockedReturnValue = new List<ResponsePostDto>() { createPost(), createPost(), createPost(), };
 
-            mockPostService.Setup(service => service.GetPostsByUserId(It.IsAny<string>())).ReturnsAsync(mockedReturnValue);
+            mockPostService.Setup(service => service.GetPostsByUserIdAsync(It.IsAny<string>())).ReturnsAsync(mockedReturnValue);
 
+            //Act
+            var controller = new PostController(mockPostService.Object);
+            var result = await controller.GetPosts("aq290312dasd") as OkObjectResult;
+            //Assert
+            result.Value.Should().BeEquivalentTo(
+                mockedReturnValue, 
+                options => options.ComparingByMembers<ResponsePostDto>()
+                );
+        }
+
+        [TestMethod()]
+        public async Task GetPosts_NoContent_ReturnNoContent()
+        {
+            //Arrange
+            var mockPostService = new Mock<IPostService>();
+
+            mockPostService.Setup(service => service.GetPostsByUserIdAsync(It.IsAny<string>())).ReturnsAsync(new List<ResponsePostDto>());
             //Act
             var controller = new PostController(mockPostService.Object);
             var result = await controller.GetPosts("aq290312dasd");
             //Assert
-            result.Should().BeEquivalentTo(mockedReturnValue, options => options.ComparingByMembers<PostDto>());
+            result.Should().BeOfType(typeof(NoContentResult));      
+        }
+
+        [TestMethod()]
+        public async Task CreatePost_ValidPost_ReturnCreatedItem()
+        {
+            //Arrange
+            var mockPostService = new Mock<IPostService>();
+
+            var PostToCreate = new createPostDto() { text = RandomString(200) };
+            //Act
+            var controller = new PostController(mockPostService.Object);
+            var result = await controller.CreatePost(PostToCreate) as CreatedAtActionResult;
+            //Assert
+            var createdPost = result.Value as BasePostDto;
+
+            PostToCreate.Should().BeEquivalentTo(
+                createdPost,
+                options => options.ComparingByMembers<BasePostDto>().ExcludingMissingMembers()
+                );
         }
 
 
-        private PostDto createPost()
+
+
+        private ResponsePostDto createPost()
         {
-            return new PostDto()
+            return new ResponsePostDto()
             {
                 postDate = DateTime.Now,
-                postedBy = RandomString(6),
-                publicId = Guid.NewGuid(),
+                username = RandomString(8),
+                userId = RandomString(25),
+                Id = Guid.NewGuid(),
                 text = RandomString(22)
             };
         }
