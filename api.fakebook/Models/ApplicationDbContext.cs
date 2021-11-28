@@ -14,6 +14,7 @@ namespace api.fakebook.Models
 
         public DbSet<Post> Posts { get; set; }
         public DbSet<Follow> Follows { get; set; }
+        public DbSet<DirectMessage> DirectMessages { get; set; }
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) {}
 

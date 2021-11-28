@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using api.fakebook.Dto.User;
 using api.fakebook.extensions;
 using api.fakebook.Models.UserModels;
 using api.fakebook.Services.UserService;
@@ -25,7 +26,7 @@ namespace api.fakebook.Controllers
 
 
         [HttpPost("follow")]
-        public async Task<IActionResult> FollowUser(string targetUserId)
+        public async Task<IActionResult> FollowUser([FromBody]string targetUserId)
         {
 
             var succsess = await _userService.FollowUser(User,targetUserId);
@@ -39,8 +40,26 @@ namespace api.fakebook.Controllers
             return Ok(new UserResponses().Ok());
         }
 
+        [HttpPost("directMessage")]
+        public async Task<IActionResult> SendDirectMessage([FromBody]DirectMessageDto message)
+        {
+            var success = await _userService.SendDirectMessage(User, message);
 
+            if (!success) return BadRequest();
 
+            return Ok();
+        }
+
+        [HttpGet("directMessage")]
+        public async Task<IActionResult> GetDirectMessages(string targetUserId)
+        {
+
+            var result = await _userService.GetDirectMessages(User, targetUserId);
+
+            if (result.Count == 0) return NoContent();
+
+            return Ok(result);
+        }
 
     }
 }

@@ -224,7 +224,7 @@ namespace api.fakebook.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<DateTime>("postDate")
+                    b.Property<DateTime>("sent")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("postedById")

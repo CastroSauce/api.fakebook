@@ -6,8 +6,10 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
+using api.fakebook.Dto.User;
 using api.fakebook.Models;
 using api.fakebook.Models.UserModels;
+using Microsoft.EntityFrameworkCore;
 
 namespace api.fakebook.Services.UserService
 {
@@ -71,6 +73,45 @@ namespace api.fakebook.Services.UserService
             await _dbContext.AddAsync(newFollow);
 
             return true;
+        }
+
+        public async Task<bool> SendDirectMessage(ClaimsPrincipal user, DirectMessageDto message)
+        {
+            var from = await FindUserById(IUserService.GetUserIdFromToken(user));
+
+            var to = await FindUserById(message.targetUserId);
+
+            if (from == null || to == null) return false;
+
+
+            var newMessage = new DirectMessage()
+            {
+                text = message.text,
+                from = from,
+                to = to,
+                sent = DateTime.Now
+            };
+
+            await _dbContext.AddAsync(newMessage);
+
+            await  _dbContext.SaveChangesAsync();
+
+            return true;
+        }
+
+        public async Task<List<DirectMessageResponseDto>> GetDirectMessages(ClaimsPrincipal user, string targetUserId)
+        {
+            var thisUser = await FindUserById(IUserService.GetUserIdFromToken(user));
+
+            var targetUser = await FindUserById(targetUserId);
+
+            return await _dbContext.DirectMessages.AsNoTracking()
+                .Where(message => message.to == thisUser && message.from == targetUser)
+                .Select(message => new DirectMessageResponseDto()
+                {
+                    text = message.text,
+                    sent = message.sent
+                }).ToListAsync();
         }
     }
 }

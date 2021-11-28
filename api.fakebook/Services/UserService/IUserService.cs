@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using api.fakebook.Dto.User;
 
 namespace api.fakebook.Services.UserService
 {
@@ -23,5 +24,7 @@ namespace api.fakebook.Services.UserService
         }
 
 
+        public Task<bool> SendDirectMessage(ClaimsPrincipal user, DirectMessageDto message);
+        public Task<List<DirectMessageResponseDto>> GetDirectMessages(ClaimsPrincipal user, string targetUserId);
     }
 }

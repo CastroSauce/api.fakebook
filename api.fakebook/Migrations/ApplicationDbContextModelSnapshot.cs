@@ -222,7 +222,7 @@ namespace api.fakebook.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<DateTime>("postDate")
+                    b.Property<DateTime>("sent")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("postedById")
@@ -240,6 +240,35 @@ namespace api.fakebook.Migrations
                     b.HasIndex("postedById");
 
                     b.ToTable("Posts");
+                });
+
+            modelBuilder.Entity("api.fakebook.Models.UserModels.DirectMessage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("fromId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("sent")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("text")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("toId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("fromId");
+
+                    b.HasIndex("toId");
+
+                    b.ToTable("DirectMessages");
                 });
 
             modelBuilder.Entity("api.fakebook.Models.UserModels.Follow", b =>
@@ -322,6 +351,21 @@ namespace api.fakebook.Migrations
                         .HasForeignKey("postedById");
 
                     b.Navigation("postedBy");
+                });
+
+            modelBuilder.Entity("api.fakebook.Models.UserModels.DirectMessage", b =>
+                {
+                    b.HasOne("api.fakebook.Models.Authentication.ApplicationUser", "from")
+                        .WithMany()
+                        .HasForeignKey("fromId");
+
+                    b.HasOne("api.fakebook.Models.Authentication.ApplicationUser", "to")
+                        .WithMany()
+                        .HasForeignKey("toId");
+
+                    b.Navigation("from");
+
+                    b.Navigation("to");
                 });
 
             modelBuilder.Entity("api.fakebook.Models.UserModels.Follow", b =>
