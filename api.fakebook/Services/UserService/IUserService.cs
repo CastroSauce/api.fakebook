@@ -15,6 +15,7 @@ namespace api.fakebook.Services.UserService
         public Task<IdentityResult> CreateUserAsync(RegisterModel register);
         public Task<IList<string>> GetUserRoles(ApplicationUser user); 
         public Task<ApplicationUser> FindUserById(string id);
+        public Task<bool> FollowUser(ClaimsPrincipal followingUser, string targetUserId);
 
         public static string GetUserIdFromToken(ClaimsPrincipal User)
         {

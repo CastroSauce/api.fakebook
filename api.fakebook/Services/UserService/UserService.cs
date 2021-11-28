@@ -3,7 +3,11 @@ using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
+using System.Threading;
 using System.Threading.Tasks;
+using api.fakebook.Models;
+using api.fakebook.Models.UserModels;
 
 namespace api.fakebook.Services.UserService
 {
@@ -11,9 +15,12 @@ namespace api.fakebook.Services.UserService
     {
         private UserManager<ApplicationUser> _userManager { get; init; }
 
-        public UserService(UserManager<ApplicationUser> userManager)
+        private ApplicationDbContext _dbContext { get; init; }
+
+        public UserService(UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext)
         {
             _userManager = userManager;
+            _dbContext = dbContext;
         }
 
         public async Task<ApplicationUser> FindUserByNameAsync(string name)
@@ -49,6 +56,21 @@ namespace api.fakebook.Services.UserService
         public async Task<ApplicationUser> FindUserById(string id)
         {
             return await _userManager.FindByIdAsync(id);
+        }
+
+        public async Task<bool> FollowUser(ClaimsPrincipal followingUser, string targetUserId)
+        {
+            var targetUser = await FindUserById(targetUserId);
+
+            if (targetUser == null) return false;
+
+            var sourceUser = await FindUserById(IUserService.GetUserIdFromToken(followingUser));
+
+            var newFollow = new Follow() {follower = sourceUser, followTarget = targetUser};
+
+            await _dbContext.AddAsync(newFollow);
+
+            return true;
         }
     }
 }

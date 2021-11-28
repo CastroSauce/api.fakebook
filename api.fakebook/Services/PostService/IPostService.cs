@@ -12,10 +12,14 @@ namespace api.fakebook.Services.PostService
 {
     public interface IPostService
     {
-        public Task<List<ResponsePostDto>> GetPostsByUserIdAsync(string userId);
+
+        public int limit { get; }
+
+        public Task<List<ResponsePostDto>> GetPostsByUserIdAsync(string userId, int offset);
+        public Task<int> GetPostsAvailableByUserIdAsync(string userId);
         public Task<ResponsePostDto> GetPostById(string postId);
         public Task CreatePostAsync(BasePostDto post, ClaimsPrincipal userToken);
-
- 
+        public Task<int> GetWallPostsAvailable(ClaimsPrincipal userToken);
+        public Task<List<ResponsePostDto>> GetWall(ClaimsPrincipal userToken, int offset);
     }
 }

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using api.fakebook.Models.UserModels;
 
 namespace api.fakebook.Models
 {
@@ -12,6 +13,7 @@ namespace api.fakebook.Models
     {
 
         public DbSet<Post> Posts { get; set; }
+        public DbSet<Follow> Follows { get; set; }
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) {}
 

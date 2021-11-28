@@ -1,7 +1,7 @@
 ﻿using api.fakebook.Dto;
 using api.fakebook.Dto.Post;
 using api.fakebook.extensions;
-using api.fakebook.Models;
+using api.fakebook.Models.PostModels;
 using api.fakebook.Services.PostService;
 using api.fakebook.Services.UserService;
 using Microsoft.AspNetCore.Authorization;
@@ -30,11 +30,18 @@ namespace api.fakebook.Controllers
         [HttpGet("PostsByUserId")]
         public async Task<IActionResult> GetPosts(string userId, int offset = 0)
         {
-            var posts = await _postService.GetPostsByUserIdAsync(userId);
+
+            var posts = await _postService.GetPostsByUserIdAsync(userId, offset);
 
             if (posts.Count == 0) return NoContent();
 
-            return  Ok(posts);
+            var available = await _postService.GetPostsAvailableByUserIdAsync(userId);
+
+            var response = new MultiplePostResponse()
+                .AddPosts(posts, available, offset + _postService.limit)
+                .Ok();
+
+            return Ok(response);
         }
 
         [HttpGet("PostById")]
@@ -55,6 +62,22 @@ namespace api.fakebook.Controllers
              await _postService.CreatePostAsync(basicPost, User);
 
             return CreatedAtAction(nameof(GetPostById), new { postId = basicPost.Id }, basicPost);
+        }
+
+        [HttpGet("Wall")]
+        public async Task<IActionResult> GetWall(int offset = 0)
+        {
+            var posts = await _postService.GetWall(User, offset);
+
+            if (posts.Count == 0) return NoContent();
+
+            var available = await _postService.GetWallPostsAvailable(User);
+
+            var response = new MultiplePostResponse()
+                .AddPosts(posts, available, offset + _postService.limit)
+                .Ok();
+
+            return Ok(posts);
         }
     }
 }

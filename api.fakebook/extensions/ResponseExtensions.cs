@@ -1,4 +1,6 @@
-﻿using api.fakebook.Models.Authentication;
+﻿using api.fakebook.Dto.Post;
+using api.fakebook.Models.Authentication;
+using api.fakebook.Models.PostModels;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
@@ -55,7 +57,13 @@ namespace api.fakebook.extensions
             return responseObj;
         }
 
-
+        public static MultiplePostResponse AddPosts(this MultiplePostResponse responseObj, List<ResponsePostDto> posts, int available, int next)
+        {
+            responseObj.available = available;
+            responseObj.next = next;
+            responseObj.posts = posts;
+            return responseObj;
+        }
 
     }
 }
