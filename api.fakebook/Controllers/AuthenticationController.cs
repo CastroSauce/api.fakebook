@@ -41,7 +41,7 @@ namespace api.fakebook.Controllers
 
             if (!ModelState.IsValid) { return BadRequest(BadAccountCreation()); }
 
-            if (await _userService.FindUserByNameAsync(register.Username) != null)
+            if (await _userService.FindUserByEmailAsync(register.Username) != null)
                 return BadRequest(BadAccountCreation());
 
             var result = await _userService.CreateUserAsync(register);
@@ -67,7 +67,7 @@ namespace api.fakebook.Controllers
         [Route("login")]
         public async Task<IActionResult> Login([FromBody] LoginModel login)
         {
-            var user = await _userService.FindUserByNameAsync(login.Username);
+            var user = await _userService.FindUserByEmailAsync(login.Username);
 
             if (user == null) return Unauthorized();
 

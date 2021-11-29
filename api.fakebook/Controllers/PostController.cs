@@ -37,8 +37,10 @@ namespace api.fakebook.Controllers
 
             var available = await _postService.GetPostsAvailableByUserIdAsync(userId);
 
+            var nextAvailable = available < offset + _postService.limit ? available : offset + _postService.limit;
+
             var response = new MultiplePostResponse()
-                .AddPosts(posts, available, offset + _postService.limit)
+                .AddPosts(posts, available, nextAvailable)
                 .Ok();
 
             return Ok(response);

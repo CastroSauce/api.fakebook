@@ -12,9 +12,11 @@ using api.fakebook.Services.PostService;
 using api.fakebook.Dto;
 using Microsoft.AspNetCore.Mvc;
 using api.fakebook.Dto.Post;
+using api.fakebook.Models.Authentication;
 using api.fakebook.Models.PostModels;
 using Microsoft.IdentityModel.Claims;
 using ClaimsPrincipal = System.Security.Claims.ClaimsPrincipal;
+using api.fakebookTests.helpers;
 
 namespace api.fakebook.Controllers.Tests
 {
@@ -22,7 +24,7 @@ namespace api.fakebook.Controllers.Tests
     public class PostControllerTests
     {
 
-        
+
         [TestMethod()]
         [DataRow(false, typeof(OkObjectResult))]
         [DataRow(true, typeof(NoContentResult))]
@@ -35,7 +37,7 @@ namespace api.fakebook.Controllers.Tests
 
             //Act
             var controller = GetController(mockPostService.Object);
-            var result = await controller.GetPosts("aq290312dasd");
+            var result = await controller.GetPosts(Helper.RandomString(13));
             //Assert
             result.Should().BeOfType(expectedResult);
         }
@@ -47,7 +49,7 @@ namespace api.fakebook.Controllers.Tests
             //Arrange
             var mockPostService = GetMockedPostService();
 
-            var PostToCreate = new createPostDto() { text = RandomString(200) };
+            var PostToCreate = new createPostDto() { text = Helper.RandomString(200) };
             //Act
             var controller = GetController(mockPostService.Object);
             var result = await controller.CreatePost(PostToCreate) as CreatedAtActionResult;
@@ -60,7 +62,7 @@ namespace api.fakebook.Controllers.Tests
                 );
         }
 
-        
+
         [TestMethod]
         [DataRow(false, typeof(OkObjectResult))]
         [DataRow(true, typeof(NoContentResult))]
@@ -80,12 +82,12 @@ namespace api.fakebook.Controllers.Tests
         [TestMethod]
         [DataRow(false, typeof(OkObjectResult))]
         [DataRow(true, typeof(NoContentResult))]
-        public async Task GetWallTest(bool returnEmptyList, Type expectedResult)
+        public async Task GetWall_ContentExistsContentDoesntExist(bool returnEmptyList, Type expectedResult)
         {
             //Arrange
             var mockPostService = GetMockedPostService();
-            
-            mockPostService.Setup(service => service.GetWall(It.IsAny<ClaimsPrincipal>(),It.IsAny<int>())).ReturnsAsync(GetPostList(returnEmptyList));
+
+            mockPostService.Setup(service => service.GetWall(It.IsAny<ClaimsPrincipal>(), It.IsAny<int>())).ReturnsAsync(GetPostList(returnEmptyList));
 
             //Act
             var controller = GetController(mockPostService.Object);
@@ -94,6 +96,9 @@ namespace api.fakebook.Controllers.Tests
             result.Should().BeOfType(expectedResult);
         }
 
+
+
+    
 
 
         private ResponsePostDto getPost(bool returnNull = false)
@@ -106,10 +111,10 @@ namespace api.fakebook.Controllers.Tests
             return new ResponsePostDto()
             {
                 postDate = DateTime.Now,
-                username = RandomString(8),
-                userId = RandomString(25),
+                username = Helper.RandomString(8),
+                userId = Helper.RandomString(25),
                 Id = Guid.NewGuid(),
-                text = RandomString(22)
+                text = Helper.RandomString(22)
             };
         }
 
@@ -117,7 +122,7 @@ namespace api.fakebook.Controllers.Tests
         {
             if (empty) return new List<ResponsePostDto>();
 
-            return new List<ResponsePostDto>() {getPost(), getPost(), getPost()};
+            return new List<ResponsePostDto>() { getPost(), getPost(), getPost() };
         }
 
 
@@ -131,12 +136,6 @@ namespace api.fakebook.Controllers.Tests
             return new PostController(postService);
         }
 
-        public static string RandomString(int length)
-        {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            return new string(Enumerable.Repeat(chars, length)
-                .Select(s => s[new Random().Next(s.Length)]).ToArray());
-        }
 
     }
 }

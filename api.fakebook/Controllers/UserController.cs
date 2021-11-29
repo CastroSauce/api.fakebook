@@ -26,10 +26,14 @@ namespace api.fakebook.Controllers
 
 
         [HttpPost("follow")]
-        public async Task<IActionResult> FollowUser([FromBody]string targetUserId)
+        public async Task<IActionResult> FollowUser([FromBody]FollowDto follow)
         {
 
-            var succsess = await _userService.FollowUser(User,targetUserId);
+            var userId = IUserService.GetUserIdFromToken(User);
+
+            if (userId.Equals(follow.targetUserId)) return BadRequest(new UserResponses().BadRequest().Message(UserResponseMessages.FOLLOW_FAILED));
+
+            var succsess = await _userService.FollowUser(userId,follow.targetUserId);
 
             if (!succsess)
             {

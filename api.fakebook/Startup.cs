@@ -90,7 +90,7 @@ namespace api.fakebook
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "api.fakebook v1"));
             }
 
-            app.UseMiddleware<SanatizerMiddleware>();
+            //app.UseMiddleware<SanatizerMiddleware>();
 
             app.UseHttpsRedirection();
 

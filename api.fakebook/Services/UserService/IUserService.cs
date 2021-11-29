@@ -11,12 +11,12 @@ namespace api.fakebook.Services.UserService
 {
     public interface IUserService
     {
-        public Task<ApplicationUser> FindUserByNameAsync(string name);
+        public Task<ApplicationUser> FindUserByEmailAsync(string email);
         public Task<bool> CheckUserPasswordAsync(ApplicationUser user, string password);
         public Task<IdentityResult> CreateUserAsync(RegisterModel register);
         public Task<IList<string>> GetUserRoles(ApplicationUser user); 
         public Task<ApplicationUser> FindUserById(string id);
-        public Task<bool> FollowUser(ClaimsPrincipal followingUser, string targetUserId);
+        public Task<bool> FollowUser(string followingUserId, string targetUserId);
 
         public static string GetUserIdFromToken(ClaimsPrincipal User)
         {

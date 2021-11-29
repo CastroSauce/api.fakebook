@@ -25,9 +25,9 @@ namespace api.fakebook.Services.UserService
             _dbContext = dbContext;
         }
 
-        public async Task<ApplicationUser> FindUserByNameAsync(string name)
+        public async Task<ApplicationUser> FindUserByEmailAsync(string email)
         {
-            return await _userManager.FindByNameAsync(name);
+            return await _userManager.FindByEmailAsync(email);
         }
 
         public async Task<bool> CheckUserPasswordAsync(ApplicationUser user, string password)
@@ -60,17 +60,21 @@ namespace api.fakebook.Services.UserService
             return await _userManager.FindByIdAsync(id);
         }
 
-        public async Task<bool> FollowUser(ClaimsPrincipal followingUser, string targetUserId)
+        public async Task<bool> FollowUser(string followingUserId, string targetUserId)
         {
+            if (followingUserId.Equals(targetUserId)) return false;
+
             var targetUser = await FindUserById(targetUserId);
 
             if (targetUser == null) return false;
 
-            var sourceUser = await FindUserById(IUserService.GetUserIdFromToken(followingUser));
+            var sourceUser = await FindUserById(followingUserId);
 
             var newFollow = new Follow() {follower = sourceUser, followTarget = targetUser};
 
-            await _dbContext.AddAsync(newFollow);
+            await _dbContext.Follows.AddAsync(newFollow);
+
+            await _dbContext.SaveChangesAsync();
 
             return true;
         }
@@ -92,7 +96,7 @@ namespace api.fakebook.Services.UserService
                 sent = DateTime.Now
             };
 
-            await _dbContext.AddAsync(newMessage);
+            await _dbContext.DirectMessages.AddAsync(newMessage);
 
             await  _dbContext.SaveChangesAsync();
 
@@ -101,17 +105,18 @@ namespace api.fakebook.Services.UserService
 
         public async Task<List<DirectMessageResponseDto>> GetDirectMessages(ClaimsPrincipal user, string targetUserId)
         {
-            var thisUser = await FindUserById(IUserService.GetUserIdFromToken(user));
+            var userId = IUserService.GetUserIdFromToken(user);
 
-            var targetUser = await FindUserById(targetUserId);
 
             return await _dbContext.DirectMessages.AsNoTracking()
-                .Where(message => message.to == thisUser && message.from == targetUser)
+                .Where(message => (message.from.Id == targetUserId && message.to.Id == userId) || (message.from.Id == userId && message.to.Id == targetUserId))
+                .OrderBy(message => message.sent)
                 .Select(message => new DirectMessageResponseDto()
                 {
                     text = message.text,
                     sent = message.sent
                 }).ToListAsync();
         }
+
     }
 }

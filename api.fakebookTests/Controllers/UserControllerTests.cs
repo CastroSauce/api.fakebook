@@ -8,7 +8,9 @@ using System.Text;
 using System.Threading.Tasks;
 using api.fakebook.Dto.User;
 using api.fakebook.Services.UserService;
+using api.fakebookTests.helpers;
 using FluentAssertions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 
@@ -24,15 +26,30 @@ namespace api.fakebook.Controllers.Tests
         {
             //Arrange
             var mockUserService = GetMockedUserService();
-            mockUserService.Setup(service => service.FollowUser(It.IsAny<ClaimsPrincipal>(), It.IsAny<string>()))
+            mockUserService.Setup(service => service.FollowUser(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(followSuccess);
-
             //Act
-            var controller = GetController(mockUserService.Object);
-            var result = await controller.FollowUser(Guid.NewGuid().ToString());
+            var controller = GetController(mockUserService.Object, Helper.GetRandomUser());
+
+            var result = await controller.FollowUser(new FollowDto(){targetUserId = Guid.NewGuid().ToString()});
 
             //Assert
             result.Should().BeOfType(expectedType);
+        }
+
+        [TestMethod]
+        public async Task followUser_userIdAndTargetIdSame_ReturnBadRequest()
+        {
+            //Arrange
+            var mockUserService = GetMockedUserService();
+            var testGuid = Guid.NewGuid().ToString();
+
+            //Act
+            var controller = GetController(mockUserService.Object, Helper.GetRandomUser(id: testGuid));
+            var result = await controller.FollowUser(new FollowDto() { targetUserId = testGuid });
+
+            //Assert
+            result.Should().BeOfType(typeof(BadRequestObjectResult));
         }
 
 
@@ -80,10 +97,7 @@ namespace api.fakebook.Controllers.Tests
 
         private DirectMessageResponseDto getPost(bool returnNull = false)
         {
-            if (returnNull)
-            {
-                return null;
-            }
+            if (returnNull){ return null; }
 
             return new DirectMessageResponseDto() { };
         }
@@ -96,10 +110,19 @@ namespace api.fakebook.Controllers.Tests
         }
 
 
-        private UserController GetController(IUserService userService)
+        private UserController GetController(IUserService userService, ClaimsPrincipal user = null)
         {
-            return new UserController(userService);
+            var controller = new UserController(userService);
+
+            if (user != null)
+            {
+                controller.ControllerContext = new ControllerContext()
+                    { HttpContext = new DefaultHttpContext() { User = user } };
+            }
+
+            return controller;
         }
+
 
         private Mock<IUserService> GetMockedUserService()
         {
