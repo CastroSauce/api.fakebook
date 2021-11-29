@@ -77,12 +77,12 @@ namespace api.fakebook.Services.UserService
 
         public async Task<bool> SendDirectMessage(ClaimsPrincipal user, DirectMessageDto message)
         {
-            var from = await FindUserById(IUserService.GetUserIdFromToken(user));
 
             var to = await FindUserById(message.targetUserId);
 
-            if (from == null || to == null) return false;
+            if (to == null) return false;
 
+            var from = await FindUserById(IUserService.GetUserIdFromToken(user));
 
             var newMessage = new DirectMessage()
             {
