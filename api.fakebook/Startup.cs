@@ -92,10 +92,16 @@ namespace api.fakebook
 
             //app.UseMiddleware<SanatizerMiddleware>();
 
+
+
             app.UseHttpsRedirection();
 
             app.UseRouting();
 
+            app.UseCors(x => x
+                .AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader());
             app.UseAuthentication();
 
             app.UseAuthorization();

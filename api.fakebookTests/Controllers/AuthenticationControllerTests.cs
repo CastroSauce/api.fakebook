@@ -27,7 +27,7 @@ namespace api.fakebook.Controllers.Tests
         {
             //arrange
             var ( mockAuthService,  mockUserService) = GetMockedClasses();
-            setupFindUserByEmail(mockUserService);
+            Helper.SetupFindUserByUsername(mockUserService);
             //act
             var controller = new AuthenticationController(mockAuthService.Object, mockUserService.Object);
             var result = await controller.Register(GetRandomRegister());
@@ -40,7 +40,7 @@ namespace api.fakebook.Controllers.Tests
         {
             //arrange
             var ( mockAuthService,  mockUserService) = GetMockedClasses();
-            setupFindUserByEmail(mockUserService, false);
+            Helper.SetupFindUserByUsername(mockUserService, false);
             mockUserService.Setup(service => service.CreateUserAsync(It.IsAny<RegisterModel>())).ReturnsAsync(IdentityResult.Success);
             //act
             var controller = GetController(mockAuthService, mockUserService);
@@ -50,48 +50,6 @@ namespace api.fakebook.Controllers.Tests
         }
 
 
-        [TestMethod]
-        public async Task Login_WrongUsername_ReturnUnauthorized()
-        {
-            //Arrange
-            var ( mockAuthService,  mockUserService) = GetMockedClasses();
-            setupFindUserByEmail(mockUserService, false);
-            //Act
-            var controller = GetController(mockAuthService, mockUserService);
-            var result = await controller.Login(GetRandomLogin());
-            //Assert
-            result.Should().BeOfType(typeof(UnauthorizedResult));
-        }
-
-        [TestMethod]
-        public async Task Login_WrongPassword_ReturnUnauthorized()
-        {
-            //Arrange
-            var (mockAuthService, mockUserService) = GetMockedClasses();
-            setupFindUserByEmail(mockUserService);
-            setupCheckPassword(mockUserService, false);
-            //Act
-            var controller = GetController(mockAuthService, mockUserService);
-            var result = await controller.Login(GetRandomLogin());
-            //Assert
-            result.Should().BeOfType(typeof(UnauthorizedResult));
-        }
-
-        [TestMethod]
-        public async Task Login_correctCredentials_ReturnOk()
-        {
-            //Arrange
-            var (mockAuthService, mockUserService) = GetMockedClasses();
-            setupFindUserByEmail(mockUserService);
-            setupCheckPassword(mockUserService, true);
-            mockAuthService.Setup(service => service.GenerateJwtToken(It.IsAny<ApplicationUser>(), It.IsAny<IList<string>>())).Returns(new System.IdentityModel.Tokens.Jwt.JwtSecurityToken());
-            //Act
-            var controller = GetController(mockAuthService, mockUserService);
-            var result = await controller.Login(GetRandomLogin());
-            //Assert
-            result.Should().BeOfType(typeof(OkObjectResult));
-        }
-
 
 
         private (Mock<IAuthService>, Mock<IUserService>) GetMockedClasses()
@@ -99,26 +57,6 @@ namespace api.fakebook.Controllers.Tests
             return (new Mock<IAuthService>(), new Mock<IUserService>());
         }
 
-        private Mock<IUserService> setupFindUserByEmail(Mock<IUserService> mockUserService, bool returnUser = true)
-        {
-            mockUserService.Setup(service => service.FindUserByEmailAsync(It.IsAny<string>()))
-                .ReturnsAsync(returnUser ? new ApplicationUser() : (ApplicationUser)null);
-
-            return mockUserService;
-        }
-
-        private Mock<IUserService> setupCheckPassword(Mock<IUserService> mockUserService, bool returnValue)
-        {
-            mockUserService.Setup(service => service.CheckUserPasswordAsync(It.IsAny<ApplicationUser>(),It.IsAny<string>()))
-                .ReturnsAsync(returnValue);
-
-            return mockUserService;
-        }
-
-        private LoginModel GetRandomLogin()
-        {
-            return new LoginModel() {Username = Helper.RandomString(8), Password = Helper.RandomString(8)};
-        }
 
         private RegisterModel GetRandomRegister()
         {

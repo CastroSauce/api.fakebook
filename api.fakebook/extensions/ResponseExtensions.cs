@@ -52,8 +52,22 @@ namespace api.fakebook.extensions
 
         public static LoginResponse Token(this LoginResponse responseObj, JwtSecurityToken token)
         {
-            responseObj.token = new JwtSecurityTokenHandler().WriteToken(token);
-            responseObj.expire = token.ValidTo;
+            responseObj.Token = new JwtSecurityTokenHandler().WriteToken(token);
+            responseObj.Expire = token.ValidTo;
+            return responseObj;
+        }
+
+        public static LoginResponse User(this LoginResponse responseObj, ApplicationUser user)
+        {
+            responseObj.Id = user.Id;
+            responseObj.Username = user.UserName;
+            return responseObj;
+        }
+
+        public static RegisterResponse User(this RegisterResponse responseObj, ApplicationUser user)
+        {
+            responseObj.userId = user.Id;
+            responseObj.username = user.UserName;
             return responseObj;
         }
 

@@ -31,7 +31,7 @@ namespace api.fakebook.Controllers.Tests
             //Act
             var controller = GetController(mockUserService.Object, Helper.GetRandomUser());
 
-            var result = await controller.FollowUser(new FollowDto(){targetUserId = Guid.NewGuid().ToString()});
+            var result = await controller.FollowUser(new FollowDto(){targetUsername = Guid.NewGuid().ToString()});
 
             //Assert
             result.Should().BeOfType(expectedType);
@@ -46,7 +46,7 @@ namespace api.fakebook.Controllers.Tests
 
             //Act
             var controller = GetController(mockUserService.Object, Helper.GetRandomUser(id: testGuid));
-            var result = await controller.FollowUser(new FollowDto() { targetUserId = testGuid });
+            var result = await controller.FollowUser(new FollowDto() { targetUsername = testGuid });
 
             //Assert
             result.Should().BeOfType(typeof(BadRequestObjectResult));

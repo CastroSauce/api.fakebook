@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.30907.101
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "api.fakebook", "api.fakebook\api.fakebook.csproj", "{774AE55C-AC6D-449F-9966-42CEF3B2C116}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "api.fakebookTests", "api.fakebookTests\api.fakebookTests.csproj", "{2024F4FF-BEFC-4BB4-A543-EC689F0414AD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "api.fakebookTests", "api.fakebookTests\api.fakebookTests.csproj", "{2024F4FF-BEFC-4BB4-A543-EC689F0414AD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

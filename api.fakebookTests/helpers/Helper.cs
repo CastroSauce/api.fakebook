@@ -4,6 +4,10 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using api.fakebook.Models.Authentication;
+using api.fakebook.Services.UserService;
+using Microsoft.Extensions.Configuration;
+using Moq;
 
 namespace api.fakebookTests.helpers
 {
@@ -26,6 +30,33 @@ namespace api.fakebookTests.helpers
             }, "mock"));
         }
 
+        public static Mock<IUserService> SetupFindUserByUsername(Mock<IUserService> mockUserService, bool returnUser = true)
+        {
+            mockUserService.Setup(service => service.FindByUsernameAsync(It.IsAny<string>()))
+                .ReturnsAsync(returnUser ? new ApplicationUser(){UserName = RandomString(8), Id = RandomString(18)} : (ApplicationUser)null);
+
+            return mockUserService;
+        }
+
+        public static LoginModel GetRandomLogin()
+        {
+            return new LoginModel() { Username = RandomString(8), Password = RandomString(8) };
+        }
+
+        public static Mock<IUserService> SetupCheckPassword(Mock<IUserService> mockUserService, bool returnSuccessfull)
+        {
+            mockUserService.Setup(service => service.CheckUserPasswordAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>()))
+                .ReturnsAsync(returnSuccessfull);
+
+            return mockUserService;
+        }
+
+        public static IList<string> GetRandomRolesList()
+        {
+            string RandomRole() => Helper.RandomString(7);
+
+            return new List<string>() { RandomRole(), RandomRole(), RandomRole() };
+        }
 
 
     }

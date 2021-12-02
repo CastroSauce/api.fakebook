@@ -10,7 +10,9 @@ namespace api.fakebook.Services.AuthService
 {
     public interface IAuthService
     {
-        public JwtSecurityToken GenerateJwtToken(ApplicationUser user, IList<string> roles);
+        public  JwtSecurityToken GenerateJwtToken(ApplicationUser user, IList<string> roles);
+
+        public Task<LoginResponse> Authenticate(LoginModel login);
 
     }
 }

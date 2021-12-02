@@ -10,7 +10,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using api.fakebook.Models.PostModels;
 
 namespace api.fakebook.Services.PostService
 {
@@ -19,18 +21,19 @@ namespace api.fakebook.Services.PostService
 
         public int limit { get; } = 10;
         private ApplicationDbContext _dbContext { get; set; }
-        private IUserService _userManager { get; set; }
+        private IUserService _userService { get; set; }
 
 
-        public PostService(ApplicationDbContext dbContext, IUserService userManager)
+        public PostService(ApplicationDbContext dbContext, IUserService userService)
         {
             _dbContext = dbContext;
-            _userManager = userManager;
+            _userService = userService;
         }
 
-        public async Task<List<ResponsePostDto>> GetPostsByUserIdAsync(string id, int offset)
+        public async Task<List<ResponsePostDto>> GetPostsByUsernameAsync(string username, int offset)
         {
-            var query = _dbContext.Posts.AsNoTracking().Where(Post => Post.postedBy.Id == id).Skip(offset).Take(limit);
+            //TODO move to repository
+            var query = _dbContext.Posts.AsNoTracking().Where(Post => Post.postedBy.UserName == username).Skip(offset).Take(limit);
 
             return await  query.Select(Post => new ResponsePostDto()
                 {
@@ -47,14 +50,39 @@ namespace api.fakebook.Services.PostService
 
             var userId = IUserService.GetUserIdFromToken(userToken);
 
-            var user = await _userManager.FindUserById(userId);
+            var user = await _userService.FindUserById(userId);
 
             var postEntity = postDto.toPost(user);
 
-            await _dbContext.AddAsync(postEntity);
+            await _dbContext.Posts.AddAsync(postEntity);
 
             await _dbContext.SaveChangesAsync();
 
+            await CheckIfNeedToCreateMentionPost(postEntity);
+
+        }
+
+        private async Task CheckIfNeedToCreateMentionPost(Post post)
+        {
+            var mentionedUser = await CheckForMention(post.text);
+
+            if (mentionedUser == null) return;
+
+            await CreateMentionPost(post, mentionedUser);
+
+        }
+
+        private async Task CreateMentionPost(Post post, ApplicationUser user)
+        {
+            var mentionPost = new Mention()
+            {
+                mentionPost = post,
+                mentionedUser = user
+            };
+
+            await _dbContext.Mentions.AddAsync(mentionPost);
+
+            await _dbContext.SaveChangesAsync();
         }
 
         public async Task<int> GetWallPostsAvailable(ClaimsPrincipal userToken)
@@ -71,14 +99,26 @@ namespace api.fakebook.Services.PostService
         {
             var userId = IUserService.GetUserIdFromToken(userToken);
 
+            var followedPosts = await GetFollowedPosts(userId);
 
-            var follows =  _dbContext.Follows.Where(follow => follow.follower.Id == userId)
+            var mentionPosts = await GetMentionPosts(userId);
+
+            var posts = followedPosts.Concat(mentionPosts).ToList();
+
+            posts.OrderBy(post => post.postDate);
+
+            return posts;
+        }
+
+        private async Task<List<ResponsePostDto>> GetFollowedPosts(string userId)
+        {
+            //TODO move to repository
+            var follows = _dbContext.Follows.Where(follow => follow.follower.Id == userId)
                 .Select(follow => follow.followTarget.Id).AsQueryable();
 
-            var posts = await _dbContext.Posts.AsNoTracking()
+            return await _dbContext.Posts.AsNoTracking()
                 .Where(post => follows.Contains(post.postedBy.Id))
                 .Take(limit)
-                .OrderBy(post => post.postDate)
                 .Select(post => new ResponsePostDto()
                 {
                     Id = post.publicId,
@@ -87,12 +127,29 @@ namespace api.fakebook.Services.PostService
                     username = post.postedBy.UserName,
                     text = post.text
                 }).ToListAsync();
+        }
 
-            return posts;
+        private async Task<List<ResponsePostDto>> GetMentionPosts(string userId)
+        {
+            //TODO move to repository
+           
+
+            return await _dbContext.Mentions.AsNoTracking()
+                .Where(mention => mention.mentionedUser.Id == userId)
+                .Take(limit)
+                .Select(mention => new ResponsePostDto()
+                {
+                    Id = mention.mentionPost.publicId,
+                    postDate = mention.mentionPost.postDate,
+                    userId = mention.mentionPost.postedBy.Id,
+                    username = mention.mentionPost.postedBy.UserName,
+                    text = mention.mentionPost.text
+                }).ToListAsync();
         }
 
         public async Task<ResponsePostDto> GetPostById(string postId)
         {
+            //TODO move to repository
             return await _dbContext.Posts.AsNoTracking().Include(post => post.postedBy)
                 .Where(Post => Post.publicId.ToString().Equals(postId))
                 .Select(Post => new ResponsePostDto() { 
@@ -104,9 +161,18 @@ namespace api.fakebook.Services.PostService
                 }).FirstOrDefaultAsync();
         }
 
-        public async Task<int> GetPostsAvailableByUserIdAsync(string userId)
+        public async Task<int> GetPostsAvailableByUsernameAsync(string username)
         {
-            return await _dbContext.Posts.Where(Post => Post.postedBy.Id == userId).CountAsync();
+            return await _dbContext.Posts.Where(Post => Post.postedBy.Id == username).CountAsync();
+        }
+
+        private async Task<ApplicationUser> CheckForMention(string postText)
+        {
+            var mention = postText.Split(" ").FirstOrDefault(word => word.StartsWith("@"));
+
+            if (mention == null) return null;
+
+            return  await _userService.FindByUsernameAsync(mention.Substring(1));
         }
     }
 }

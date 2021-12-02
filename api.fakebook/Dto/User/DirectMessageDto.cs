@@ -10,7 +10,7 @@ namespace api.fakebook.Dto.User
     {
 
         [Required]
-        public string targetUserId { get; set; }
+        public string targetUsername { get; set; }
 
         [Required]
         public string text { get; set; }

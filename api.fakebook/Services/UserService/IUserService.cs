@@ -12,19 +12,25 @@ namespace api.fakebook.Services.UserService
     public interface IUserService
     {
         public Task<ApplicationUser> FindUserByEmailAsync(string email);
+        public Task<ApplicationUser> FindByUsernameAsync(string username);
         public Task<bool> CheckUserPasswordAsync(ApplicationUser user, string password);
         public Task<IdentityResult> CreateUserAsync(RegisterModel register);
         public Task<IList<string>> GetUserRoles(ApplicationUser user); 
         public Task<ApplicationUser> FindUserById(string id);
-        public Task<bool> FollowUser(string followingUserId, string targetUserId);
+        public Task<bool> FollowUser(string followingUsername, string targerUsername);
 
         public static string GetUserIdFromToken(ClaimsPrincipal User)
         {
            return User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         }
 
+        public static string GetUsername(ClaimsPrincipal User)
+        {
+            return User.FindFirst(ClaimTypes.Name)?.Value;
+        }
+
 
         public Task<bool> SendDirectMessage(ClaimsPrincipal user, DirectMessageDto message);
-        public Task<List<DirectMessageResponseDto>> GetDirectMessages(ClaimsPrincipal user, string targetUserId);
+        public Task<List<DirectMessageResponseDto>> GetDirectMessages(ClaimsPrincipal user, string targetUsername);
     }
 }

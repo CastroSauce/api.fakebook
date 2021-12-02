@@ -39,9 +39,7 @@ namespace api.fakebook.Controllers
         public async Task<IActionResult> Register([FromBody]RegisterModel register)
         {
 
-            if (!ModelState.IsValid) { return BadRequest(BadAccountCreation()); }
-
-            if (await _userService.FindUserByEmailAsync(register.Username) != null)
+            if (await _userService.FindByUsernameAsync(register.Username) != null)
                 return BadRequest(BadAccountCreation());
 
             var result = await _userService.CreateUserAsync(register);
@@ -51,7 +49,7 @@ namespace api.fakebook.Controllers
                 var errorResponse = new RegisterResponse()
                 .IdentityErrors(result.Errors)
                 .BadRequest()
-                .Message(ResponseMessages.ACCOUNT_LOGIN_OK);
+                .Message(ResponseMessages.ACCOUNT_LOGIN_ERROR);
 
                 return BadRequest(errorResponse);
             }
@@ -59,6 +57,7 @@ namespace api.fakebook.Controllers
             var response = new RegisterResponse()
                 .Ok()
                 .Message(ResponseMessages.ACCOUNT_LOGIN_OK);
+                
 
             return Ok(response);
         }
@@ -67,22 +66,22 @@ namespace api.fakebook.Controllers
         [Route("login")]
         public async Task<IActionResult> Login([FromBody] LoginModel login)
         {
-            var user = await _userService.FindUserByEmailAsync(login.Username);
+            var response = await _authService.Authenticate(login);
 
-            if (user == null) return Unauthorized();
-
-            if (!await _userService.CheckUserPasswordAsync(user, login.Password)) return Unauthorized();
-
-            var roles = await _userService.GetUserRoles(user);
-
-            var token = _authService.GenerateJwtToken(user, roles);
-
-            var response = new LoginResponse()
-                .Token(token)
-                .Ok()
-                .Message(ResponseMessages.ACCOUNT_LOGIN_OK);
+            if (response == null)
+                return BadRequest(new Response().BadRequest().Message("Username of Password wrong"));
 
             return Ok(response);
+        }
+
+
+
+
+        [HttpGet]
+        [Route("health")]
+        public  IActionResult healthCheck()
+        {
+            return Ok(new {health = "healthy"});
         }
 
 

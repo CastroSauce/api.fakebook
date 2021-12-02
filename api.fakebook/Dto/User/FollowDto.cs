@@ -10,6 +10,6 @@ namespace api.fakebook.Dto.User
     public class FollowDto
     {
         [Required]
-        public string targetUserId{ get; set; }      
+        public string targetUsername { get; set; }      
     }
 }

@@ -15,8 +15,8 @@ namespace api.fakebook.Services.PostService
 
         public int limit { get; }
 
-        public Task<List<ResponsePostDto>> GetPostsByUserIdAsync(string userId, int offset);
-        public Task<int> GetPostsAvailableByUserIdAsync(string userId);
+        public Task<List<ResponsePostDto>> GetPostsByUsernameAsync(string username, int offset);
+        public Task<int> GetPostsAvailableByUsernameAsync(string username);
         public Task<ResponsePostDto> GetPostById(string postId);
         public Task CreatePostAsync(BasePostDto post, ClaimsPrincipal userToken);
         public Task<int> GetWallPostsAvailable(ClaimsPrincipal userToken);

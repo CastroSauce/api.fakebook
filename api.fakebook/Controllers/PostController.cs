@@ -27,15 +27,16 @@ namespace api.fakebook.Controllers
             _postService = postService;
         }
 
-        [HttpGet("PostsByUserId")]
-        public async Task<IActionResult> GetPosts(string userId, int offset = 0)
+        [HttpGet("PostsByUsername")]
+        public async Task<IActionResult> GetPosts(string username, int offset = 0)
         {
 
-            var posts = await _postService.GetPostsByUserIdAsync(userId, offset);
+
+            var posts = await _postService.GetPostsByUsernameAsync(username, offset);
 
             if (posts.Count == 0) return NoContent();
 
-            var available = await _postService.GetPostsAvailableByUserIdAsync(userId);
+            var available = await _postService.GetPostsAvailableByUsernameAsync(username);
 
             var nextAvailable = available < offset + _postService.limit ? available : offset + _postService.limit;
 
@@ -75,11 +76,13 @@ namespace api.fakebook.Controllers
 
             var available = await _postService.GetWallPostsAvailable(User);
 
+            var nextAvailable = available < offset + _postService.limit ? available : offset + _postService.limit;
+
             var response = new MultiplePostResponse()
-                .AddPosts(posts, available, offset + _postService.limit)
+                .AddPosts(posts, available, nextAvailable)
                 .Ok();
 
-            return Ok(posts);
+            return Ok(response);
         }
     }
 }

@@ -33,7 +33,7 @@ namespace api.fakebook.Controllers.Tests
             //Arrange
             var mockPostService = GetMockedPostService();
 
-            mockPostService.Setup(service => service.GetPostsByUserIdAsync(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(GetPostList(returnEmptyList));
+            mockPostService.Setup(service => service.GetPostsByUsernameAsync(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(GetPostList(returnEmptyList));
 
             //Act
             var controller = GetController(mockPostService.Object);

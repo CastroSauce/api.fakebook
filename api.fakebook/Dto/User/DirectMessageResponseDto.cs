@@ -11,9 +11,10 @@ namespace api.fakebook.Dto.User
     {
 
 
-        [Required]
+        public string username { get; set; }
+
         public string text { get; set; }
-        [Required]
-        public DateTime sent { get; set; }
+
+        public DateTime postDate { get; set; }
     }
 }

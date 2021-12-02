@@ -8,8 +8,11 @@ using System.Text;
 using System.Threading.Tasks;
 using api.fakebook.Models;
 using api.fakebook.Models.Authentication;
+using api.fakebook.Services.UserService;
+using api.fakebookTests.helpers;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Claims;
 using Moq;
@@ -23,18 +26,19 @@ namespace api.fakebook.Services.AuthService.Tests
         public void GenerateJwtTokenTest()
         {
             //Arrange
-            var MockIConfig = new Mock<IConfiguration>();
-            MockIConfig.Setup(conf => conf[It.Is<string>(settings => settings == "JWT:Secret")])
-                .Returns(RandomString(32));
+            var (mockIConfig, mockUserService) = GetMockedDepedencies();
+
+            mockIConfig.Setup(conf => conf[It.Is<string>(settings => settings == "JWT:Secret")])
+                .Returns(Helper.RandomString(32));
 
             var randomUser = GetNewUser();
-            var randomRoles = GetRandomRolesList();
+            var randomRoles = Helper.GetRandomRolesList();
 
             //Act
-            var AuthService = GetAuthService(MockIConfig.Object);
-            var resultToken = AuthService.GenerateJwtToken(randomUser, randomRoles);
+            var service = GetAuthService(mockIConfig.Object, mockUserService.Object);
+            var resultToken = service.GenerateJwtToken(randomUser, randomRoles);
 
-            var ( username,  Id, roles) = GetNameAndIdAndRole(resultToken);
+            var (username, Id, roles) = GetNameAndIdAndRole(resultToken);
 
             //Assert
             username.Should().Match(randomUser.UserName);
@@ -43,14 +47,78 @@ namespace api.fakebook.Services.AuthService.Tests
         }
 
 
-        private AuthService GetAuthService(IConfiguration configuration)
+        [TestMethod]
+        public async Task Authenticate_WrongUsername_ReturnNull()
         {
-            return new AuthService(configuration);
+            //Arrange
+            var (mockIConfig, mockUserService) = GetMockedDepedencies();
+            Helper.SetupFindUserByUsername(mockUserService, false);
+            //Act
+            var service = GetAuthService(mockIConfig.Object, mockUserService.Object);
+            var result = await service.Authenticate(Helper.GetRandomLogin());
+            //Assert
+            result.Should().BeNull();
+        }
+
+        [TestMethod]
+        public async Task Authenticate_WrongPassword_ReturnNull()
+        {
+            //Arrange
+            var (mockIConfig, mockUserService) = GetMockedDepedencies();
+            Helper.SetupFindUserByUsername(mockUserService);
+            Helper.SetupCheckPassword(mockUserService, false);
+            //Act
+            var service = GetAuthService(mockIConfig.Object, mockUserService.Object);
+            var result = await service.Authenticate(Helper.GetRandomLogin());
+            //Assert
+            result.Should().BeNull();
+        }
+
+        [TestMethod]
+        public async Task Authenticate_correctCredentials_LoginResponse()
+        {
+            //Arrange
+            var (mockIConfig, mockUserService) = GetMockedDepedencies();
+
+            Helper.SetupFindUserByUsername(mockUserService);
+            Helper.SetupCheckPassword(mockUserService, true);
+
+            mockIConfig.Setup(conf => conf[It.Is<string>(settings => settings == "JWT:Secret")])
+                .Returns(Helper.RandomString(32));
+
+            mockUserService.Setup(service => service.GetUserRoles(It.IsAny<ApplicationUser>()))
+                .ReturnsAsync(Helper.GetRandomRolesList());
+            //Act
+            var service = GetAuthService(mockIConfig.Object, mockUserService.Object);
+            var result = await service.Authenticate(Helper.GetRandomLogin());
+            //Assert
+            result.Should().BeOfType(typeof(LoginResponse));
+        }
+
+
+        private AuthService GetAuthService(IConfiguration configuration, IUserService userService)
+        {
+            return new AuthService(configuration, userService);
+        }
+
+        private Mock<IUserService> GetMockUserService()
+        {
+            return new Mock<IUserService>();
+        }
+
+        private Mock<IConfiguration> GetMockConfig()
+        {
+            return new Mock<IConfiguration>();
+        }
+
+        private (Mock<IConfiguration>, Mock<IUserService>) GetMockedDepedencies()
+        {
+            return (GetMockConfig(), GetMockUserService());
         }
 
         private ApplicationUser GetNewUser()
         {
-            return new ApplicationUser() {UserName = RandomString(7), Id = Guid.NewGuid().ToString()};
+            return new ApplicationUser() { UserName = Helper.RandomString(7), Id = Guid.NewGuid().ToString() };
         }
 
         private (string, string, List<string>) GetNameAndIdAndRole(JwtSecurityToken token)
@@ -63,20 +131,8 @@ namespace api.fakebook.Services.AuthService.Tests
         }
 
 
-        private IList<string> GetRandomRolesList()
-        {
-            string RandomRole() => RandomString(7);
-
-            return new List<string>() {RandomRole(), RandomRole(), RandomRole()};
-        }
 
 
 
-        public static string RandomString(int length)
-        {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            return new string(Enumerable.Repeat(chars, length)
-                .Select(s => s[new Random().Next(s.Length)]).ToArray());
-        }
     }
 }

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using api.fakebook.Dto.User;
 using api.fakebook.extensions;
+using api.fakebook.Models.PostModels;
 using api.fakebook.Models.UserModels;
 using api.fakebook.Services.UserService;
 using Microsoft.AspNetCore.Authorization;
@@ -29,13 +30,13 @@ namespace api.fakebook.Controllers
         public async Task<IActionResult> FollowUser([FromBody]FollowDto follow)
         {
 
-            var userId = IUserService.GetUserIdFromToken(User);
+            var username = IUserService.GetUsername(User);
 
-            if (userId.Equals(follow.targetUserId)) return BadRequest(new UserResponses().BadRequest().Message(UserResponseMessages.FOLLOW_FAILED));
+            if (username.Equals(follow.targetUsername)) return BadRequest(new UserResponses().BadRequest().Message(UserResponseMessages.FOLLOW_FAILED));
 
-            var succsess = await _userService.FollowUser(userId,follow.targetUserId);
+            var success = await _userService.FollowUser(username, follow.targetUsername);
 
-            if (!succsess)
+            if (!success)
             {
                 var response = new UserResponses().BadRequest().Message(UserResponseMessages.FOLLOW_FAILED);
                 return BadRequest(response);
@@ -55,10 +56,9 @@ namespace api.fakebook.Controllers
         }
 
         [HttpGet("directMessage")]
-        public async Task<IActionResult> GetDirectMessages(string targetUserId)
+        public async Task<IActionResult> GetDirectMessages(string targetUsername)
         {
-
-            var result = await _userService.GetDirectMessages(User, targetUserId);
+            var result = await _userService.GetDirectMessages(User, targetUsername);
 
             if (result.Count == 0) return NoContent();
 

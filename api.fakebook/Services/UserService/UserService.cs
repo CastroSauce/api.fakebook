@@ -30,6 +30,14 @@ namespace api.fakebook.Services.UserService
             return await _userManager.FindByEmailAsync(email);
         }
 
+        public async Task<ApplicationUser> FindByUsernameAsync(string username)
+        {
+
+
+            return await _dbContext.Users.FirstOrDefaultAsync(user => user.UserName == username);
+
+        }
+
         public async Task<bool> CheckUserPasswordAsync(ApplicationUser user, string password)
         {
             return await _userManager.CheckPasswordAsync(user, password);
@@ -42,11 +50,12 @@ namespace api.fakebook.Services.UserService
             ApplicationUser user = new()
             {
                 UserName = register.Username,
-                Email = register.Email,
+                Email = "somethingsomething@something.com",
                 SecurityStamp = Guid.NewGuid().ToString()
             };
 
-            return await _userManager.CreateAsync(user, register.Password);
+            //return await _userManager.CreateAsync(user, register.Password);
+            return await _userManager.CreateAsync(user, "PlaceHolder@12345");
         }
 
         public async Task<IList<string>> GetUserRoles(ApplicationUser user)
@@ -60,15 +69,15 @@ namespace api.fakebook.Services.UserService
             return await _userManager.FindByIdAsync(id);
         }
 
-        public async Task<bool> FollowUser(string followingUserId, string targetUserId)
+        public async Task<bool> FollowUser(string followingUsername, string targerUsername)
         {
-            if (followingUserId.Equals(targetUserId)) return false;
+            if (followingUsername.Equals(targerUsername)) return false;
 
-            var targetUser = await FindUserById(targetUserId);
+            var targetUser = await FindByUsernameAsync(targerUsername);
 
             if (targetUser == null) return false;
 
-            var sourceUser = await FindUserById(followingUserId);
+            var sourceUser = await FindByUsernameAsync(followingUsername);
 
             var newFollow = new Follow() {follower = sourceUser, followTarget = targetUser};
 
@@ -82,7 +91,7 @@ namespace api.fakebook.Services.UserService
         public async Task<bool> SendDirectMessage(ClaimsPrincipal user, DirectMessageDto message)
         {
 
-            var to = await FindUserById(message.targetUserId);
+            var to = await FindByUsernameAsync(message.targetUsername);
 
             if (to == null) return false;
 
@@ -103,18 +112,19 @@ namespace api.fakebook.Services.UserService
             return true;
         }
 
-        public async Task<List<DirectMessageResponseDto>> GetDirectMessages(ClaimsPrincipal user, string targetUserId)
+        public async Task<List<DirectMessageResponseDto>> GetDirectMessages(ClaimsPrincipal user, string targetUsername)
         {
-            var userId = IUserService.GetUserIdFromToken(user);
+            var username = IUserService.GetUsername(user);
 
 
             return await _dbContext.DirectMessages.AsNoTracking()
-                .Where(message => (message.from.Id == targetUserId && message.to.Id == userId) || (message.from.Id == userId && message.to.Id == targetUserId))
+                .Where(message => (message.from.UserName == targetUsername && message.to.UserName == username) || (message.from.UserName == username && message.to.UserName == targetUsername))
                 .OrderBy(message => message.sent)
                 .Select(message => new DirectMessageResponseDto()
                 {
+                    username = message.from.UserName,
                     text = message.text,
-                    sent = message.sent
+                    postDate = message.sent
                 }).ToListAsync();
         }
 

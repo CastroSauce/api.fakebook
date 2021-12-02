@@ -9,6 +9,8 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using api.fakebook.extensions;
+using api.fakebook.Services.UserService;
 
 namespace api.fakebook.Services.AuthService
 {
@@ -16,10 +18,11 @@ namespace api.fakebook.Services.AuthService
     {
 
         private IConfiguration _configuration { get; init; }
-
-        public AuthService(IConfiguration configuration)
+        private IUserService _userService { get; set; }
+        public AuthService(IConfiguration configuration, IUserService userService)
         {
             _configuration = configuration;
+            _userService = userService;
         }
 
 
@@ -45,6 +48,26 @@ namespace api.fakebook.Services.AuthService
                 claims: authClaims,
                 signingCredentials: new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256)
                 );
+        }
+
+        public async Task<LoginResponse> Authenticate(LoginModel login)
+        {
+            var user = await _userService.FindByUsernameAsync(login.Username);
+
+            if (user == null) return null;
+
+            //if (!await _userService.CheckUserPasswordAsync(user, login.Password)) return null;
+            if (!await _userService.CheckUserPasswordAsync(user, "PlaceHolder@12345")) return null;
+
+            var roles = await _userService.GetUserRoles(user);
+
+            var token = GenerateJwtToken(user, roles);
+
+            return new LoginResponse()
+                .Token(token)
+                .User(user)
+                .Ok()
+                .Message(ResponseMessages.ACCOUNT_LOGIN_OK) as LoginResponse;
         }
     }
 }

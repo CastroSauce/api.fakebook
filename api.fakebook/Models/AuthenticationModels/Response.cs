@@ -17,14 +17,18 @@ namespace api.fakebook.Models.Authentication
 
     public class LoginResponse : Response
     {
-        public string token { get; set; }
-
-        public DateTime expire { get; set; }
+        public string Id { get; set; }
+        public string Username { get; set; }
+        public string Token { get; set; }
+        public DateTime Expire { get; set; }
     }
 
     public class RegisterResponse : Response
     {
-       public List<string> errors = new();
+        public string username  { get; set; }
+        public string userId  { get; set; }
+
+        public List<string> errors = new();
     }
 
     public static class ResponseMessages
