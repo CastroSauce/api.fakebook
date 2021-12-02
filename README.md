@@ -1,2 +1,3 @@
 # api.fakebook
-Använder MsSQl express connection stringen kan ändras i appsettings
+Använder SQL express databas 
+connection strängen kan ändras i appsettings
