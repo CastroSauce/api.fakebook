@@ -38,6 +38,14 @@ namespace api.fakebookTests.helpers
             return mockUserService;
         }
 
+        public static Mock<IUserService> SetupCheckIfUserExistsByUsername(Mock<IUserService> mockUserService, bool checkResult = true)
+        {
+            mockUserService.Setup(service => service.CheckIfUserExistsByUsername(It.IsAny<string>()))
+                .ReturnsAsync(checkResult);
+
+            return mockUserService;
+        }
+
         public static LoginModel GetRandomLogin()
         {
             return new LoginModel() { Username = RandomString(8), Password = RandomString(8) };

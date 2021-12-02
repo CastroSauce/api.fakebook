@@ -18,7 +18,7 @@ namespace api.fakebook.Services.PostService
         public Task<List<ResponsePostDto>> GetPostsByUsernameAsync(string username, int offset);
         public Task<int> GetPostsAvailableByUsernameAsync(string username);
         public Task<ResponsePostDto> GetPostById(string postId);
-        public Task CreatePostAsync(BasePostDto post, ClaimsPrincipal userToken);
+        public Task<ResponsePostDto> CreatePostAsync(createPostDto createPost, ClaimsPrincipal userToken);
         public Task<int> GetWallPostsAvailable(ClaimsPrincipal userToken);
         public Task<List<ResponsePostDto>> GetWall(ClaimsPrincipal userToken, int offset);
     }

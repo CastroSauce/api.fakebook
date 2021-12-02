@@ -116,6 +116,7 @@ namespace api.fakebook.Services.UserService
         {
             var username = IUserService.GetUsername(user);
 
+            //Todo move to repository
 
             return await _dbContext.DirectMessages.AsNoTracking()
                 .Where(message => (message.from.UserName == targetUsername && message.to.UserName == username) || (message.from.UserName == username && message.to.UserName == targetUsername))
@@ -128,5 +129,14 @@ namespace api.fakebook.Services.UserService
                 }).ToListAsync();
         }
 
+        public async Task<bool> CheckIfUserExistsByUsername(string username)
+        {
+            //TODO move to a repository
+            var query = _dbContext.Users.Where(user => user.UserName == username).AsQueryable();
+
+            return await query.CountAsync() > 0;
+
+
+        }
     }
 }

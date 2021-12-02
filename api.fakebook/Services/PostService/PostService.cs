@@ -45,14 +45,13 @@ namespace api.fakebook.Services.PostService
                 }).ToListAsync();
         }
 
-        public async Task CreatePostAsync(BasePostDto postDto, ClaimsPrincipal userToken)
+        public async Task<ResponsePostDto> CreatePostAsync(createPostDto createPost, ClaimsPrincipal userToken)
         {
-
             var userId = IUserService.GetUserIdFromToken(userToken);
 
             var user = await _userService.FindUserById(userId);
 
-            var postEntity = postDto.toPost(user);
+            var postEntity = createPost.toPostBase().toPost(user);
 
             await _dbContext.Posts.AddAsync(postEntity);
 
@@ -60,6 +59,7 @@ namespace api.fakebook.Services.PostService
 
             await CheckIfNeedToCreateMentionPost(postEntity);
 
+            return postEntity.toDto();
         }
 
         private async Task CheckIfNeedToCreateMentionPost(Post post)
@@ -69,7 +69,16 @@ namespace api.fakebook.Services.PostService
             if (mentionedUser == null) return;
 
             await CreateMentionPost(post, mentionedUser);
+        }
 
+       
+        private async Task<ApplicationUser> CheckForMention(string postText)
+        {
+            var mention = postText.Split(" ").FirstOrDefault(word => word.StartsWith("@"));
+
+            if (mention == null) return null;
+
+            return await _userService.FindByUsernameAsync(mention.Substring(1)); // remove @
         }
 
         private async Task CreateMentionPost(Post post, ApplicationUser user)
@@ -166,13 +175,6 @@ namespace api.fakebook.Services.PostService
             return await _dbContext.Posts.Where(Post => Post.postedBy.Id == username).CountAsync();
         }
 
-        private async Task<ApplicationUser> CheckForMention(string postText)
-        {
-            var mention = postText.Split(" ").FirstOrDefault(word => word.StartsWith("@"));
 
-            if (mention == null) return null;
-
-            return  await _userService.FindByUsernameAsync(mention.Substring(1));
-        }
     }
 }

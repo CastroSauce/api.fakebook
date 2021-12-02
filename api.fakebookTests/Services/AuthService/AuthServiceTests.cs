@@ -46,6 +46,35 @@ namespace api.fakebook.Services.AuthService.Tests
             roles.Should().BeEquivalentTo(randomRoles);
         }
 
+        [TestMethod()]
+        [DataRow("testname", "password123")]
+        public async Task Register_UserAlreadyExist_ReturnBad(string username, string password)
+        {
+            //arrange
+            var (mockIConfig, mockUserService) = GetMockedDepedencies();
+            Helper.SetupCheckIfUserExistsByUsername(mockUserService);
+            //act
+            var service = GetAuthService(mockIConfig.Object, mockUserService.Object);
+            var result = await service.Register(GetRandomRegister());
+            //assert
+            result.Should().BeOfType(typeof(RegisterResponse));
+            result.status.Should().Be(System.Net.HttpStatusCode.BadRequest);
+        }
+
+        [TestMethod]
+        public async Task Register_NoUserExists_ReturnOk()
+        {
+            //arrange
+            var (mockIConfig, mockUserService) = GetMockedDepedencies();
+            Helper.SetupCheckIfUserExistsByUsername(mockUserService, false);
+            mockUserService.Setup(service => service.CreateUserAsync(It.IsAny<RegisterModel>())).ReturnsAsync(IdentityResult.Success);
+            //act
+            var service = GetAuthService(mockIConfig.Object, mockUserService.Object);
+            var result = await service.Register(GetRandomRegister());
+            //assert
+            result.Should().BeOfType(typeof(RegisterResponse));
+            result.status.Should().Be(System.Net.HttpStatusCode.OK);
+        }
 
         [TestMethod]
         public async Task Authenticate_WrongUsername_ReturnNull()
@@ -114,6 +143,12 @@ namespace api.fakebook.Services.AuthService.Tests
         private (Mock<IConfiguration>, Mock<IUserService>) GetMockedDepedencies()
         {
             return (GetMockConfig(), GetMockUserService());
+        }
+
+
+        private RegisterModel GetRandomRegister()
+        {
+            return new RegisterModel() { Username = Helper.RandomString(8), Password = Helper.RandomString(8), Email = Helper.RandomString(8) };
         }
 
         private ApplicationUser GetNewUser()

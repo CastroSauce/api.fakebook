@@ -69,5 +69,32 @@ namespace api.fakebook.Services.AuthService
                 .Ok()
                 .Message(ResponseMessages.ACCOUNT_LOGIN_OK) as LoginResponse;
         }
+
+        public async Task<RegisterResponse> Register(RegisterModel register)
+        {
+            if (await _userService.CheckIfUserExistsByUsername(register.Username))
+                return new RegisterResponse().BadRequest().Message("User already exists") as RegisterResponse;
+
+
+            var result = await _userService.CreateUserAsync(register);
+
+
+            if (!result.Succeeded)
+            {
+                var errorResponse = new RegisterResponse()
+                .IdentityErrors(result.Errors)
+                .BadRequest()
+                .Message(ResponseMessages.ACCOUNT_LOGIN_ERROR);
+
+                return errorResponse as RegisterResponse;
+            }
+
+            return new RegisterResponse()
+                .Ok()
+                .Message(ResponseMessages.ACCOUNT_LOGIN_OK) as RegisterResponse;
+
+        }
+
+   
     }
 }

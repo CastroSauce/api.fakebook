@@ -52,19 +52,16 @@ namespace api.fakebook.Controllers
         {
             var post = await _postService.GetPostById(postId);
 
-            if (post == null) return NoContent();
-
-            return Ok(post);
+            return post != null ? Ok(post) : NoContent();
         }
 
         [HttpPost]
         public async Task<IActionResult> CreatePost([FromBody]createPostDto post)
         {
-            var basicPost = post.toPostBase();
 
-             await _postService.CreatePostAsync(basicPost, User);
+             var result = await _postService.CreatePostAsync(post, User);
 
-            return CreatedAtAction(nameof(GetPostById), new { postId = basicPost.Id }, basicPost);
+            return CreatedAtAction(nameof(GetPostById), new { postId = result.Id }, result);
         }
 
         [HttpGet("Wall")]

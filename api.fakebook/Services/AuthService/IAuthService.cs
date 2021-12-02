@@ -14,5 +14,6 @@ namespace api.fakebook.Services.AuthService
 
         public Task<LoginResponse> Authenticate(LoginModel login);
 
+        public Task<RegisterResponse> Register(RegisterModel register);
     }
 }

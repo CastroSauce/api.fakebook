@@ -13,6 +13,9 @@ namespace api.fakebook.Services.UserService
     {
         public Task<ApplicationUser> FindUserByEmailAsync(string email);
         public Task<ApplicationUser> FindByUsernameAsync(string username);
+
+        public Task<bool> CheckIfUserExistsByUsername(string username);
+
         public Task<bool> CheckUserPasswordAsync(ApplicationUser user, string password);
         public Task<IdentityResult> CreateUserAsync(RegisterModel register);
         public Task<IList<string>> GetUserRoles(ApplicationUser user); 

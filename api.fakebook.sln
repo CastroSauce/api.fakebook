@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "api.fakebook", "api.fakeboo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "api.fakebookTests", "api.fakebookTests\api.fakebookTests.csproj", "{2024F4FF-BEFC-4BB4-A543-EC689F0414AD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "fakebook", "..\..\fakebook\fakebook\fakebook.csproj", "{BF3D62E2-484D-4A15-8FB3-26DA27CCDF5E}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,10 +21,6 @@ Global
 		{2024F4FF-BEFC-4BB4-A543-EC689F0414AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2024F4FF-BEFC-4BB4-A543-EC689F0414AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2024F4FF-BEFC-4BB4-A543-EC689F0414AD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BF3D62E2-484D-4A15-8FB3-26DA27CCDF5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BF3D62E2-484D-4A15-8FB3-26DA27CCDF5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BF3D62E2-484D-4A15-8FB3-26DA27CCDF5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BF3D62E2-484D-4A15-8FB3-26DA27CCDF5E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

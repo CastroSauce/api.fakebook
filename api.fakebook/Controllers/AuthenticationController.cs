@@ -38,28 +38,9 @@ namespace api.fakebook.Controllers
         [Route("register")]
         public async Task<IActionResult> Register([FromBody]RegisterModel register)
         {
+            var respones = _authService.Register(register);
 
-            if (await _userService.FindByUsernameAsync(register.Username) != null)
-                return BadRequest(BadAccountCreation());
-
-            var result = await _userService.CreateUserAsync(register);
-
-            if (!result.Succeeded)
-            {
-                var errorResponse = new RegisterResponse()
-                .IdentityErrors(result.Errors)
-                .BadRequest()
-                .Message(ResponseMessages.ACCOUNT_LOGIN_ERROR);
-
-                return BadRequest(errorResponse);
-            }
-
-            var response = new RegisterResponse()
-                .Ok()
-                .Message(ResponseMessages.ACCOUNT_LOGIN_OK);
-                
-
-            return Ok(response);
+            return Ok(respones);
         }
 
         [HttpPost]
